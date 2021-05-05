@@ -12,7 +12,7 @@
  * Author: S4, but mostly made by MainWP
  * Author URI: https://s-4.host
  * Text Domain: mainwp-child
- * Version: 10.3
+ * Version: 10.3.1
  * Requires at least: 3.6
  * Requires PHP: 7
  */
