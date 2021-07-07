@@ -21,6 +21,9 @@ This plugin is installed on each client site and allows them to connect to our M
 
 == Changelog ==
 
+= 10.3.2 - 07/07/21
++ Code synced with upstream to wupport new vulnerability checker
+
 = 10.3.1 - 04/05/21
 + Code synced with upstream for multiple performance improvements
 
