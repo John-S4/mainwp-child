@@ -5,7 +5,7 @@ Author URI: https://s-4.host
 Requires at least: 5.4
 Tested up to: 5.7.1
 Requires PHP: 7.0
-Version: 10.3.1
+Version: 10.3.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
