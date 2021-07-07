@@ -4,7 +4,7 @@ This is a fork of the mainwp-child plugin by MainWP, with changes made by us for
 
 Changes are mostly branding, cosmetic, and removing options that are unnecessary for client sites.
 
-== What it does? ==
+## What it does? ##
 
 We are using MainWP as a tool to let us monitor and update plugins, vulnerabilities, backups, etc. on all of the WordPress sites installed across our servers. It gives us the ability to do all of that without actually logging into clients sites.
 
