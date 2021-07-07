@@ -161,7 +161,7 @@ class MainWP_Connect {
 	 * @uses \MainWP\Child\MainWP_Child_Callable::is_callable_function_no_auth()
 	 * @uses \MainWP\Child\MainWP_Helper::instance()->error()
 	 */
-	public function parse_init_auth( $auth = false ) {
+	public function parse_init_auth( $auth = false ) { // phpcs:ignore -- Current complexity is the only way to achieve desired results, pull request solutions appreciated.
 
 		if ( ! $auth && isset( $_POST['mainwpsignature'] ) ) { // with 'mainwpsignature' then need to callable functions.
 			MainWP_Helper::instance()->error( __( 'Authentication failed! Please deactivate & re-activate the MainWP Child plugin on this site and try again.', 'mainwp-child' ) );
@@ -192,6 +192,17 @@ class MainWP_Connect {
 					}
 				}
 
+				// check just clone admin here.
+				$just_clone_admin = get_option( 'mainwp_child_just_clone_admin' );
+				$clone_sync       = false;
+				if ( ! empty( $just_clone_admin ) ) {
+					delete_option( 'mainwp_child_just_clone_admin' );
+					if ( $username != $just_clone_admin ) {
+						$username   = $just_clone_admin;
+						$clone_sync = true;
+					}
+				}
+
 				// if alternative admin not existed.
 				if ( ! $user ) {
 					// check connected admin existed.
@@ -209,7 +220,15 @@ class MainWP_Connect {
 				}
 
 				// try to login.
-				$this->login( $auth_user );
+				$logged_in = $this->login( $auth_user );
+
+				// authed.
+				if ( $clone_sync && $logged_in ) {
+					$information                            = array();
+					$information['sync']                    = MainWP_Child_Stats::get_instance()->get_site_stats( array(), false );
+					$information['sync']['clone_adminname'] = $just_clone_admin;
+					MainWP_Helper::write( $information ); // forced exit to sync clone admin.
+				}
 			}
 
 			if ( isset( $_POST['function'] ) && 'visitPermalink' === $_POST['function'] ) {

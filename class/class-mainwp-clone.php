@@ -185,6 +185,9 @@ class MainWP_Clone {
 	 */
 	public function init() {
 		add_action( 'check_admin_referer', array( self::get_class_name(), 'permalink_changed' ) );
+		if ( get_option( 'mainwp_child_clone_permalink' ) || get_option( 'mainwp_child_restore_permalink' ) ) {
+			add_action( 'admin_notices', array( MainWP_Clone_Page::get_class_name(), 'permalink_admin_notice' ) );
+		}
 	}
 
 	/**
@@ -398,6 +401,7 @@ class MainWP_Clone {
 			$siteToClone = $sitesToClone[ $siteId ];
 			$url         = $siteToClone['url'];
 			$key         = $siteToClone['extauth'];
+			$clone_admin = $siteToClone['connect_admin'];
 
 			MainWP_Helper::end_session();
 
@@ -428,6 +432,7 @@ class MainWP_Clone {
 			}
 			MainWP_Helper::update_option( 'mainwp_temp_clone_plugins', $result['plugins'] );
 			MainWP_Helper::update_option( 'mainwp_temp_clone_themes', $result['themes'] );
+			MainWP_Helper::update_option( 'mainwp_temp_clone_admin', $clone_admin );
 
 			$output = array(
 				'url'  => $result['backup'],
@@ -670,8 +675,9 @@ class MainWP_Clone {
 			$cloneInstall = new MainWP_Clone_Install( $file );
 			$cloneInstall->read_configuration_file();
 
-			$plugins = get_option( 'mainwp_temp_clone_plugins' );
-			$themes  = get_option( 'mainwp_temp_clone_themes' );
+			$plugins     = get_option( 'mainwp_temp_clone_plugins' );
+			$themes      = get_option( 'mainwp_temp_clone_themes' );
+			$clone_admin = get_option( 'mainwp_temp_clone_admin' );
 
 			if ( $testFull ) {
 				$cloneInstall->test_download();
@@ -696,6 +702,7 @@ class MainWP_Clone {
 			delete_option( 'mainwp_child_nossl' );
 			delete_option( 'mainwp_child_nossl_key' );
 			delete_option( 'mainwp_child_clone_sites' );
+			delete_option( 'mainwp_temp_clone_admin' );
 
 			MainWP_Helper::update_option( 'mainwp_child_pubkey', $pubkey, 'yes' );
 			MainWP_Helper::update_option( 'mainwp_child_uniqueId', $uniqueId );
@@ -704,6 +711,8 @@ class MainWP_Clone {
 			MainWP_Helper::update_option( 'mainwp_child_nossl', $nossl, 'yes' );
 			MainWP_Helper::update_option( 'mainwp_child_nossl_key', $nossl_key );
 			MainWP_Helper::update_option( 'mainwp_child_clone_sites', $sitesToClone );
+			MainWP_Helper::update_option( 'mainwp_child_just_clone_admin', $clone_admin );
+
 			if ( ! MainWP_Helper::starts_with( basename( $file ), 'download-backup-' ) ) {
 				MainWP_Helper::update_option( 'mainwp_child_restore_permalink', true, 'yes' );
 			} else {
