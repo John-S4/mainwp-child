@@ -175,8 +175,8 @@ class MainWP_Pages {
 				$child_menu_title    = stripslashes( $branding_header['name'] );
 				$child_page_title    = $child_menu_title . ' Settings';
 			} else {
-				$child_menu_title = 'MainWP Child';
-				$child_page_title = 'MainWP Child Settings';
+				$child_menu_title = 'S4 Admin';
+				$child_page_title = 'S4 Admin settings';
 			}
 			$this->init_pages( $child_menu_title, $child_page_title );
 		}
@@ -438,7 +438,7 @@ class MainWP_Pages {
 		</style>
 
 		<div class="wrap">
-		<h2><i class="fa fa-file"></i> <?php echo ( null === self::$brandingTitle ? 'MainWP Child' : self::$brandingTitle ); ?></h2>
+		<h2><i class="fa fa-file"></i> <?php echo ( null === self::$brandingTitle ? 'S4 Admin' : self::$brandingTitle ); ?></h2>
 		<div style="clear: both;"></div><br/>
 		<div class="mainwp-tabs" id="mainwp-tabs">
 			<?php if ( ! $hide_settings ) { ?>
