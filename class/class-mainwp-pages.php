@@ -103,13 +103,13 @@ class MainWP_Pages {
 		// Admin Notice...
 		if ( ! get_option( 'mainwp_child_pubkey' ) && MainWP_Helper::is_admin() && is_admin() ) {
 			$branding_opts  = MainWP_Child_Branding::instance()->get_branding_options();
-			$child_name     = ( '' === $branding_opts['branding_preserve_title'] ) ? 'MainWP Child' : $branding_opts['branding_preserve_title'];
-			$dashboard_name = ( '' === $branding_opts['branding_preserve_title'] ) ? 'MainWP Dashboard' : $branding_opts['branding_preserve_title'] . ' Dashboard';
+			$child_name     = ( '' === $branding_opts['branding_preserve_title'] ) ? 'S4 Admin' : $branding_opts['branding_preserve_title'];
+			$dashboard_name = ( '' === $branding_opts['branding_preserve_title'] ) ? 'S4 WP management' : $branding_opts['branding_preserve_title'] . ' Dashboard';
 
 			$msg  = '<div class="wrap"><div class="postbox" style="margin-top: 4em;"><p style="background: #a00; color: #fff; font-size: 22px; font-weight: bold; margin: 0; padding: .3em;">';
 			$msg .= __( 'Attention!', 'mainwp-child' );
 			$msg .= '</p><div style="padding-left: 1em; padding-right: 1em;"><p style="font-size: 16px;">';
-			$msg .= __( 'Please add this site to your ', 'mainwp-child' ) . $dashboard_name . ' ' . __( '<b>NOW</b> or deactivate the ', 'mainwp-child' ) . $child_name . __( ' plugin until you are ready to connect this site to your Dashboard in order to avoid unexpected security issues.', 'mainwp-child' );
+			$msg .= __( 'Please ask S4 to add this site to the ', 'mainwp-child' ) . $dashboard_name . ' ' . __( '<b>NOW</b> or deactivate the ', 'mainwp-child' ) . $child_name . __( ' plugin until you are ready to connect this site to your Dashboard in order to avoid unexpected security issues.', 'mainwp-child' );
 			$msg .= '</p>';
 			$msg .= '<p style="font-size: 16px;">';
 			$msg .= __( 'If you are not sure how to add this site to your Dashboard, <a href="https://mainwp.com/help/docs/set-up-the-mainwp-plugin/add-site-to-your-dashboard/" target="_blank">please review these instructions</a>.', 'mainwp-child' );
