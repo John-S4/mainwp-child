@@ -1,10 +1,12 @@
 # S4-Admin WordPress plugin
 
+[![CodeFactor](https://www.codefactor.io/repository/github/s4-hosting/s4-admin/badge)](https://www.codefactor.io/repository/github/s4-hosting/s4-admin)
+
 This is a fork of the mainwp-child plugin by MainWP, with changes made by us for installation and use on the sites of our hosting clients.
 
 Changes are mostly branding, cosmetic, and removing options that are unnecessary for client sites.
 
-== What it does? ==
+## What it does? ##
 
 We are using MainWP as a tool to let us monitor and update plugins, vulnerabilities, backups, etc. on all of the WordPress sites installed across our servers. It gives us the ability to do all of that without actually logging into clients sites.
 
