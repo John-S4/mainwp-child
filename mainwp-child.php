@@ -1,20 +1,20 @@
 <?php
 /**
- * S4 - Admin
+ * MainWP Child Plugin
  *
  * @package MainWP\Child
  */
 
 /**
- * Plugin Name: S4 - Admin
- * Description: PLEASE DO NOT DISABLE - Connects to our MainWP Dashboard and allows S4 system admins to monitor, update and backup your site without needing to log in to your WordPress dashboard.
- * Plugin URI: https://s-4.host
- * Author: S4, but mostly made by MainWP
- * Author URI: https://s-4.host
+ * Plugin Name: MainWP Child
+ * Description: Provides a secure connection between your MainWP Dashboard and your WordPress sites. MainWP allows you to manage WP sites from one central location. Plugin documentation and options can be found here https://kb.mainwp.com/.
+ * Plugin URI: https://mainwp.com/
+ * Author: MainWP
+ * Author URI: https://mainwp.com
  * Text Domain: mainwp-child
- * Version: 10.3.1
- * Requires at least: 3.6
- * Requires PHP: 7
+ * Version: 4.1.8
+ * Requires at least: 5.4
+ * Requires PHP: 7.0
  */
 
 require_once ABSPATH . 'wp-includes' . DIRECTORY_SEPARATOR . 'version.php'; // Version information from WordPress.
