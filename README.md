@@ -1,21 +1,43 @@
-# S4-Admin WordPress plugin
-
-[![CodeFactor](https://www.codefactor.io/repository/github/s4-hosting/s4-admin/badge)](https://www.codefactor.io/repository/github/s4-hosting/s4-admin)
+=== S4-admin ===
+Contributors: S4, but mostly made by MainWP
+Author: S4, but mostly made by MainWP
+Author URI: https://s-4.host
+Requires at least: 5.4
+Tested up to: 5.7.1
+Requires PHP: 7.0
+Version: 10.3.4
+License: GPLv3 or later
+License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
 This is a fork of the mainwp-child plugin by MainWP, with changes made by us for installation and use on the sites of our hosting clients.
 
 Changes are mostly branding, cosmetic, and removing options that are unnecessary for client sites.
 
-## What it does? ##
+== What it does? ==
 
 We are using MainWP as a tool to let us monitor and update plugins, vulnerabilities, backups, etc. on all of the WordPress sites installed across our servers. It gives us the ability to do all of that without actually logging into clients sites.
 
 This plugin is installed on each client site and allows them to connect to our MainWP Dashboard.
 
-## Documentation
+== Changelog ==
 
-We install and setup this plugin on client sites, where there shouldn't be any need to change anything. If you have questions or need help contact S4 support. 
+=10.3.4 - 22/10/21
++ Code synced with upstream - better error messages and security improvement
 
-## Thanks to MainWP
+= 10.3.2 - 07/07/21
++ Code synced with upstream to wupport new vulnerability checker
 
-MainWP is a great open source tool and this plugin is almost entirely thier work. Thanks to them for creating it and releasing under GPL. 
+= 10.3.1 - 04/05/21
++ Code synced with upstream for multiple performance improvements
+
+= 10.3 - 24/03/21
+* Code synced with mainwp-child for security improvements and compatability fixes
+
+= 10.2 - 12/01/21
+* Code synced with mainwp-child for security improvements
+
+= 10.1 - 09/12/20
+* Code synced with mainwp-chlid
+
+= 10.0
+* Initial release
