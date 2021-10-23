@@ -697,13 +697,11 @@ class MainWP_Child_Server_Information extends MainWP_Child_Server_Information_Ba
 		self::render_row_sec( 'cURL Timeout', '>=', '300', 'get_curl_timeout', 'seconds', '=', '0' );
 		if ( function_exists( 'curl_version' ) ) {
 			self::render_row_sec( 'cURL Version', '>=', '7.18.1', 'get_curl_version', '', '', null );
+			$openssl_version = 'OpenSSL/1.1.0';
 			self::render_row_sec(
 				'cURL SSL Version',
 				'>=',
-				array(
-					'version_number' => 0x009080cf,
-					'version'        => 'OpenSSL/0.9.8l',
-				),
+				$openssl_version,
 				'get_curl_ssl_version',
 				'',
 				'',
@@ -711,6 +709,9 @@ class MainWP_Child_Server_Information extends MainWP_Child_Server_Information_Ba
 				'',
 				'curlssl'
 			);
+			if ( ! self::curlssl_compare( $openssl_version, '>=' ) ) {
+				echo "<tr style=\"background:#fffaf3\"><td colspan='5'><span class=\"mainwp-warning\"><i class='fa fa-exclamation-circle'>" . sprintf( __( 'Your host needs to update OpenSSL to at least version 1.1.0 which is already over 4 years old and contains patches for over 60 vulnerabilities.%1$sThese range from Denial of Service to Remote Code Execution. %2$sClick here for more information.%3$s', 'mainwp' ), '<br/>', '<a href="https://community.letsencrypt.org/t/openssl-client-compatibility-changes-for-let-s-encrypt-certificates/143816" target="_blank">', '</a>' ) . '</span></td></tr>';
+			}
 		}
 	}
 
@@ -1166,7 +1167,7 @@ class MainWP_Child_Server_Information extends MainWP_Child_Server_Information_Ba
 			<td><?php echo( true === $currentVersion ? 'true' : $currentVersion ); ?></td>
 			<?php if ( 'filesize' === $whatType ) { ?>
 				<td><?php echo( self::filesize_compare( $currentVersion, $version, $compare ) ? '<span class="mainwp-pass"><i class="fa fa-check-circle"></i> Pass</span>' : self::render_warning_text( $errorType ) ); ?></td>
-			<?php } elseif ( 'curlssl' === $whatType ) { ?>
+			<?php } elseif ( 'get_curl_ssl_version' === $getter ) { ?>
 				<td><?php echo( self::curlssl_compare( $version, $compare ) ? '<span class="mainwp-pass"><i class="fa fa-check-circle"></i> Pass</span>' : self::render_warning_text( $errorType ) ); ?></td>
 			<?php } elseif ( ( 'get_max_input_time' === $getter || 'get_max_execution_time' === $getter ) && -1 == $currentVersion ) { ?>
 				<td><?php echo '<span class="mainwp-pass"><i class="fa fa-check-circle"></i> Pass</span>'; ?></td>
@@ -1378,7 +1379,7 @@ class MainWP_Child_Server_Information extends MainWP_Child_Server_Information_Ba
 		 */
 		global $current_user;
 
-		$uniqueId = get_option( 'mainwp_child_uniqueId' );
+		$uniqueId = MainWP_Helper::get_site_unique_id();
 		$details  = array(
 			'siteurl'       => array(
 				'title' => __( 'Site URL', 'mainwp-child' ),

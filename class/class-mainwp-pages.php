@@ -106,20 +106,15 @@ class MainWP_Pages {
 			$child_name     = ( '' === $branding_opts['branding_preserve_title'] ) ? 'MainWP Child' : $branding_opts['branding_preserve_title'];
 			$dashboard_name = ( '' === $branding_opts['branding_preserve_title'] ) ? 'MainWP Dashboard' : $branding_opts['branding_preserve_title'] . ' Dashboard';
 
-			$msg  = '<div class="wrap"><div class="postbox" style="margin-top: 4em;"><p style="background: #a00; color: #fff; font-size: 22px; font-weight: bold; margin: 0; padding: .3em;">';
-			$msg .= __( 'Attention!', 'mainwp-child' );
-			$msg .= '</p><div style="padding-left: 1em; padding-right: 1em;"><p style="font-size: 16px;">';
-			$msg .= __( 'Please add this site to your ', 'mainwp-child' ) . $dashboard_name . ' ' . __( '<b>NOW</b> or deactivate the ', 'mainwp-child' ) . $child_name . __( ' plugin until you are ready to connect this site to your Dashboard in order to avoid unexpected security issues.', 'mainwp-child' );
-			$msg .= '</p>';
-			$msg .= '<p style="font-size: 16px;">';
-			$msg .= __( 'If you are not sure how to add this site to your Dashboard, <a href="https://mainwp.com/help/docs/set-up-the-mainwp-plugin/add-site-to-your-dashboard/" target="_blank">please review these instructions</a>.', 'mainwp-child' );
-			$msg .= '</p>';
+			$msg  = '<div style="margin:50px 20px 20px 0;background:#fff;border:1px solid #c3c4c7;border-top-color:#d63638;border-top-width:5px;padding:20px;">';
+			$msg .= '<h3 style="margin-top:0;color:#d63638;font-weight:900;">' . __( 'Attention! ', 'mainwp-child' ) . $child_name . __( ' plugin is activated but not connected.', 'mainwp-child' ) . '</h3>';
+			$msg .= '<p style="font-size:15px">' . __( 'Please add this site to your ', 'mainwp-child' ) . $dashboard_name . ' ' . __( '<strong>NOW</strong> or deactivate the ', 'mainwp-child' ) . $child_name . __( ' plugin until you are ready to connect this site to your Dashboard in order to avoid unexpected security issues. ', 'mainwp-child' );
+			$msg .= sprintf( __( 'If you are not sure how to do it, please review this %1$shelp document%2$s.', 'mainwp-child' ), '<a href="https://kb.mainwp.com/docs/add-site-to-your-dashboard/" target="_blank">', '</a>' ) . '</p>';
 			if ( ! MainWP_Child_Branding::instance()->is_branding() ) {
-				$msg .= '<p>';
-				$msg .= __( 'You can also turn on the unique security ID option in <a href="admin.php?page=mainwp_child_tab">', 'mainwp-child' ) . $child_name . __( ' settings</a> if you would like extra security and additional time to add this site to your Dashboard. <br/>Find out more in this help document <a href="https://mainwp.com/help/docs/set-up-the-mainwp-plugin/set-unique-security-id/" target="_blank">How do I use the child unique security ID?</a>', 'mainwp-child' );
-				$msg .= '</p>';
+				$msg .= '<p style="font-size:15px">' . __( 'You can also turn on the unique security ID option in ', 'mainwp-child' ) . $child_name . sprintf( __( ' %1$ssettings%2$s if you would like extra security and additional time to add this site to your Dashboard. ', 'maiwnip-child' ), '<a href="admin.php?page=mainwp_child_tab">', '</a>' );
+				$msg .= sprintf( __( 'Find out more in this %1$shelp document%2$s how to do it.', 'mainwp-child' ), '<a href="https://kb.mainwp.com/docs/set-unique-security-id/" target="_blank">', '</a>' ) . '</p>';
 			}
-			$msg .= '</div></div></div>';
+			$msg .= '</div>';
 			echo wp_kses_post( $msg );
 		}
 		MainWP_Child_Server_Information::render_warnings();
@@ -582,7 +577,8 @@ class MainWP_Pages {
 					<div style="margin: 1em 0 4em 0;">
 						<input name="requireUniqueSecurityId" type="checkbox" id="requireUniqueSecurityId"
 						<?php
-						if ( '' != get_option( 'mainwp_child_uniqueId' ) ) {
+						$uniqueId = MainWP_Helper::get_site_unique_id();
+						if ( '' != $uniqueId ) {
 							echo 'checked'; }
 						?>
 						/>
@@ -590,7 +586,7 @@ class MainWP_Pages {
 					</div>
 					<div>
 						<?php
-						if ( '' != get_option( 'mainwp_child_uniqueId' ) ) {
+						if ( '' != $uniqueId ) {
 							echo '<span style="border: 1px dashed #e5e5e5; background: #fafafa; font-size: 24px; padding: 1em 2em;">' . esc_html__( 'Your unique security ID is:', 'mainwp-child' ) . ' <span style="font-weight: bold; color: #7fb100;">' . esc_html( get_option( 'mainwp_child_uniqueId' ) ) . '</span></span>';
 						}
 						?>
