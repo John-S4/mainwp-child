@@ -159,7 +159,7 @@ class MainWP_Child_Themes_Check {
 	 * @throws \Exception Error message on failure.
 	 */
 	public function perform_watchdog() {
-		if ( false === wp_next_scheduled( $this->cron_name_daily ) && false === wp_next_scheduled( $this->cron_name_batching ) ) {
+		if ( ! wp_next_scheduled( $this->cron_name_batching ) ) {
 			$last_run = get_option( $this->option_name_last_daily_run );
 			if ( false === $last_run || ! is_integer( $last_run ) ) {
 				$last_run = false;
@@ -208,7 +208,7 @@ class MainWP_Child_Themes_Check {
 			}
 		}
 		if ( $update ) {
-			set_transient( $this->tran_name_theme_timestamps, $themes_outdate, DAY_IN_SECONDS );
+			set_transient( $this->tran_name_theme_timestamps, $themes_outdate, 2 * DAY_IN_SECONDS );
 		}
 
 		return $themes_outdate;
@@ -286,24 +286,13 @@ class MainWP_Child_Themes_Check {
 			}
 		}
 
-		if ( ! defined( 'DAY_IN_SECONDS' ) ) {
-
-			/**
-			 * Defines days in seconds.
-			 *
-			 * @const ( string ) Default: true.
-			 * @source https://code-reference.mainwp.com/classes/MainWP.Child.MainWP_Child_Themes_Check.html
-			 */
-			define( 'DAY_IN_SECONDS', 24 * 60 * 60 );
-		}
-
 		// Store the master response for usage in the plugin table.
-		set_transient( $this->tran_name_theme_timestamps, $responses, DAY_IN_SECONDS );
+		set_transient( $this->tran_name_theme_timestamps, $responses, 2 * DAY_IN_SECONDS );
 
 		if ( 0 === count( $all_themes ) ) {
 			delete_transient( $this->tran_name_themes_to_batch );
 		} else {
-			set_transient( $this->tran_name_themes_to_batch, $all_themes, DAY_IN_SECONDS );
+			set_transient( $this->tran_name_themes_to_batch, $all_themes, 2 * DAY_IN_SECONDS );
 			wp_schedule_single_event( time(), $this->cron_name_batching );
 
 		}

@@ -111,17 +111,7 @@ class MainWP_Child_Updates {
 	 * @uses \MainWP\Child\MainWP_Helper::write()
 	 */
 	public function upgrade_plugin_theme() {
-		// Prevent disable/re-enable at upgrade.
-		if ( ! defined( 'DOING_CRON' ) ) {
-
-			/**
-			 * Checks whether cron is in progress.
-			 *
-			 * @const ( bool ) Default: true
-			 * @source https://code-reference.mainwp.com/classes/MainWP.Child.MainWP_Child_Updates.html
-			 */
-			define( 'DOING_CRON', true );
-		}
+		MainWP_Helper::maybe_set_doing_cron();
 
 		MainWP_Helper::get_wp_filesystem();
 
@@ -145,7 +135,27 @@ class MainWP_Child_Updates {
 			$this->update_premiums_todo( $information, $premiumUpgrader, $mwp_premium_updates_todo, $mwp_premium_updates_todo_slugs );
 		}
 
+		/**
+		 * WP-Rocket auto cache purge.
+		 *
+		 * Purge cache after updates.
+		 *
+		 * @params $information.
+		 */
+		MainWP_Child_Cache_Purge::instance()->auto_purge_cache( $information );
+
+		// Save Status results.
 		$information['sync'] = MainWP_Child_Stats::get_instance()->get_site_stats( array(), false );
+
+		// ** Send data to MainWP Dashboard. **//
+
+		// Send last purged time stamp to MainWP Dashboard.
+		$information['mainwp_cache_control_last_purged'] = get_option( 'mainwp_cache_control_last_purged', 0 );
+		// Send active cache solution to MainWP Dashboard.
+		$information['mainwp_cache_control_cache_solution'] = get_option( 'mainwp_cache_control_cache_solution', 0 );
+		// Send data for Cache Control Logs.
+		$information['mainwp_cache_control_logs'] = get_option( 'mainwp_cache_control_log', '' );
+
 		MainWP_Helper::write( $information );
 	}
 
@@ -848,6 +858,12 @@ class MainWP_Child_Updates {
 		include_once ABSPATH . '/wp-admin/includes/file.php';
 		include_once ABSPATH . '/wp-admin/includes/misc.php';
 
+		$locked = $this->check_core_updater_locked();
+		if ( $locked ) {
+			$information['error'] = __( 'Another update is currently in progress.', 'mainwp-child' );
+			MainWP_Helper::write( $information );
+		}
+
 		if ( null !== $this->filterFunction ) {
 			add_filter( 'pre_site_transient_update_core', $this->filterFunction, 99 );
 		}
@@ -862,6 +878,22 @@ class MainWP_Child_Updates {
 		if ( null !== $this->filterFunction ) {
 			remove_filter( 'pre_transient_update_core', $this->filterFunction, 99 );
 		}
+
+		/**
+		 * WP-Rocket auto cache purge.
+		 *
+		 * Purge cache after updates.
+		 *
+		 * @params $information.
+		 */
+		MainWP_Child_Cache_Purge::instance()->auto_purge_cache( $information );
+
+		// Send last purged time stamp to MainWP Dashboard.
+		$information['mainwp_cache_control_last_purged'] = get_option( 'mainwp_cache_control_last_purged', 0 );
+		// Send active cache solution to MainWP Dashboard.
+		$information['mainwp_cache_control_cache_solution'] = get_option( 'mainwp_cache_control_cache_solution', 0 );
+		// Send data for Cache Control Logs.
+		$information['mainwp_cache_control_logs'] = get_option( 'mainwp_cache_control_log', '' );
 
 		MainWP_Helper::write( $information );
 	}
@@ -878,6 +910,8 @@ class MainWP_Child_Updates {
 	private function do_upgrade_wp( &$information ) {
 		// Check for new versions.
 		wp_version_check();
+
+		global $wp_version;
 
 		$core_updates = get_core_updates();
 		if ( is_array( $core_updates ) && count( $core_updates ) > 0 ) {
@@ -931,6 +965,25 @@ class MainWP_Child_Updates {
 	}
 
 	/**
+	 * Method check_core_updater_locked()
+	 *
+	 * Check core updater locked.
+	 *
+	 *  @return bool true locked.
+	 */
+	private function check_core_updater_locked() {
+		global $wpdb;
+		$query  = "SELECT option_name, option_value FROM $wpdb->options ";
+		$query .= 'WHERE option_name = "core_updater.lock"';
+		$found = $wpdb->get_results( $query ); // phpcs:ignore -- safe query, required to achieve desired results, pull request solutions appreciated.
+		if ( $found ) {
+			return true;
+		}
+		return false;
+	}
+
+
+	/**
 	 * Method upgrade_translation()
 	 *
 	 * Update translations and set feedback to the sync information.
@@ -939,13 +992,7 @@ class MainWP_Child_Updates {
 	 * @uses \MainWP\Child\MainWP_Helper::write()
 	 */
 	public function upgrade_translation() {
-		/**
-		 * Checks whether cron is in progress.
-		 *
-		 * @const ( bool ) Default: true
-		 * @source https://code-reference.mainwp.com/classes/MainWP.Child.MainWP_Child_Callable.html
-		 */
-		define( 'DOING_CRON', true );
+		MainWP_Helper::maybe_set_doing_cron();
 
 		MainWP_Helper::get_wp_filesystem();
 		include_once ABSPATH . '/wp-admin/includes/class-wp-upgrader.php';

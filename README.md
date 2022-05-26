@@ -18,4 +18,4 @@ We install and setup this plugin on client sites, where there shouldn't be any n
 
 ## Thanks to MainWP
 
-MainWP is a great open source tool and this plugin is almost entirely thier work. Thanks to them for creating it and releasing under GPL. 
+MainWP is a great open source tool and this plugin is almost entirely thier work. Thanks to them for creating it and releasing under GPL.

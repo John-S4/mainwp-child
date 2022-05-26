@@ -58,12 +58,21 @@ class MainWP_Child_Wordfence {
 	const OPTIONS_TYPE_ALL          = 'alloptions';
 
 	/**
+	 * Public variable to hold the KEY_TYPE_FREE value.
+	 *
+	 * @var string the KEY_TYPE_FREE value.
+	 */
+	public $keyType = null;
+	/**
 	 * Public static variable to hold the information about Wordfence options.
 	 *
 	 * @var array Supported Wordfence options.
 	 */
 	public static $options_filter = array(
 		'alertEmails',
+		'displayTopLevelOptions',
+		'displayTopLevelBlocking',
+		'displayTopLevelLiveTraffic',
 		'alertOn_adminLogin',
 		'alertOn_firstAdminLoginOnly',
 		'alertOn_scanIssues', // new.
@@ -140,8 +149,6 @@ class MainWP_Child_Wordfence {
 		'maxRequestsHumans_action',
 		'max404Humans',
 		'max404Humans_action',
-		'maxScanHits',
-		'maxScanHits_action',
 		'blockedTime',
 		'liveTraf_ignorePublishers',
 		'liveTraf_displayExpandedRecords',
@@ -149,6 +156,7 @@ class MainWP_Child_Wordfence {
 		'liveTraf_ignoreIPs',
 		'liveTraf_ignoreUA',
 		'liveTraf_maxRows',
+		'liveTraf_maxAge',
 		'displayTopLevelLiveTraffic',
 		'whitelisted',
 		'bannedURLs',
@@ -180,8 +188,10 @@ class MainWP_Child_Wordfence {
 		'other_bypassLitespeedNoabort',
 		'disableWAFIPBlocking',
 		'other_blockBadPOST',
+		'blockCustomText',
 		'displayTopLevelBlocking',
 		'betaThreatDefenseFeed',
+		'wordfenceI18n',
 		'avoid_php_input',
 		'scanType',
 		'schedMode',
@@ -200,6 +210,7 @@ class MainWP_Child_Wordfence {
 		'startScansRemotely',
 		'ssl_verify',
 		'betaThreatDefenseFeed',
+		'wordfenceI18n',
 		'avoid_php_input',
 	);
 
@@ -246,6 +257,9 @@ class MainWP_Child_Wordfence {
 
 		if ( $this->is_wordfence_installed ) {
 			add_action( 'wp_ajax_mainwp_wordfence_download_htaccess', array( $this, 'download_htaccess' ) );
+			if ( null === $this->keyType ) {
+				$this->keyType = defined( '\wfLicense::KEY_TYPE_FREE' ) ? \wfLicense::KEY_TYPE_FREE : ( defined( '\wfAPI::KEY_TYPE_FREE' ) ? \wfAPI::KEY_TYPE_FREE : 'free' );
+			}
 		}
 	}
 
@@ -316,9 +330,6 @@ class MainWP_Child_Wordfence {
 		if ( false == $lastcheck ) {
 			$lastcheck = time() - 3600 * 24 * 10;
 		}
-
-		$offset    = get_option( 'gmt_offset' );
-		$lastcheck = $lastcheck + ( -$offset * 60 * 60 );
 
 		$table_wfStatus = \wfDB::networkTable( 'wfStatus' );
 
@@ -765,6 +776,9 @@ class MainWP_Child_Wordfence {
 			'apiKey',
 			'autoUpdate',
 			'alertEmails',
+			'displayTopLevelOptions',
+			'displayTopLevelBlocking',
+			'displayTopLevelLiveTraffic',
 			'howGetIPs',
 			'howGetIPs_trusted_proxies',
 			'other_hideWPVersion',
@@ -808,6 +822,7 @@ class MainWP_Child_Wordfence {
 			'liveTraf_ignoreIPs',
 			'liveTraf_ignoreUA',
 			'liveTraf_maxRows',
+			'liveTraf_maxAge',
 			'displayTopLevelLiveTraffic',
 		);
 
@@ -829,8 +844,6 @@ class MainWP_Child_Wordfence {
 			'maxRequestsHumans_action',
 			'max404Humans',
 			'max404Humans_action',
-			'maxScanHits',
-			'maxScanHits_action',
 			'blockedTime',
 			'allowed404s',
 			'loginSecurityEnabled',
@@ -848,6 +861,7 @@ class MainWP_Child_Wordfence {
 			'loginSec_blockAdminReg',
 			'loginSec_disableAuthorScan',
 			'other_blockBadPOST',
+			'blockCustomText',
 			'other_pwStrengthOnUpdate',
 			'other_WFNet',
 			'wafStatus',
@@ -896,6 +910,7 @@ class MainWP_Child_Wordfence {
 			'startScansRemotely',
 			'ssl_verify',
 			'betaThreatDefenseFeed',
+			'wordfenceI18n',
 			'avoid_php_input',
 		);
 
@@ -1619,6 +1634,12 @@ SQL
 						if (method_exists(\wfWAF::getInstance()->getStorageEngine(), 'purgeIPBlocks')) {
 							\wfWAF::getInstance()->getStorageEngine()->purgeIPBlocks(\wfWAFStorageInterface::IP_BLOCKS_BLACKLIST);
 						}
+					} elseif ( 'betaThreatDefenseFeed' == $key ) {
+						$val = \wfUtils::truthyToBoolean($val);
+						\wfConfig::set($key, $val);
+						if (class_exists('\wfWAFConfig')) {
+							\wfWAFConfig::set('betaThreatDefenseFeed', $val, 'synced');
+						}
 					} else {
 						\wfConfig::set( $key, $val ); // save it!
 					}
@@ -1699,7 +1720,7 @@ SQL
 						if ( $keyData['ok'] && $keyData['apiKey'] ) {
 							\wfConfig::set( 'apiKey', $keyData['apiKey'] );
 							\wfConfig::set( 'isPaid', 0 );
-							\wfConfig::set( 'keyType', \wfAPI::KEY_TYPE_FREE );
+							\wfConfig::set( 'keyType', $this->keyType );
 							\wordfence::licenseStatusChanged();
 							$result['apiKey'] = $keyData['apiKey'];
 							$apiKey           = $keyData['apiKey'];
@@ -1723,7 +1744,7 @@ SQL
 							\wfConfig::set( 'isPaid', $isPaid ); // res['isPaid'] is boolean coming back as JSON and turned back into PHP struct. Assuming JSON to PHP handles bools.
 							\wordfence::licenseStatusChanged();
 							if ( ! $isPaid ) {
-								\wfConfig::set( 'keyType', \wfAPI::KEY_TYPE_FREE );
+								\wfConfig::set( 'keyType', $this->keyType );
 							}
 
 							$result['apiKey'] = $apiKey;
@@ -1750,7 +1771,6 @@ SQL
 
 					$api = new \wfAPI( $apiKey, \wfUtils::getWPVersion() );
 					try {
-						$keyType = \wfAPI::KEY_TYPE_FREE;
 						$keyData = $api->call(
 							'ping_api_key',
 							array(),
@@ -1760,7 +1780,7 @@ SQL
 							)
 						);
 						if ( isset( $keyData['_isPaidKey'] ) ) {
-							$keyType = \wfConfig::get( 'keyType' );
+							$key_type = \wfConfig::get( 'keyType' );
 						}
 						if ( isset( $keyData['dashboard'] ) ) {
 							\wfConfig::set( 'lastDashboardCheck', time() );
@@ -1781,10 +1801,10 @@ SQL
 							}
 						}
 
-						\wfConfig::set( 'keyType', $keyType );
+						\wfConfig::set( 'keyType', $this->keyType );
 
 						if ( ! isset( $result['apiKey'] ) ) {
-							$isPaid           = ( \wfAPI::KEY_TYPE_FREE == $keyType ) ? false : true;
+							$isPaid           = ( $this->keyType == $key_type ) ? false : true;
 							$result['apiKey'] = $apiKey;
 							$result['isPaid'] = $isPaid;
 							if ( $isPaid ) {
@@ -3289,17 +3309,24 @@ SQL
 					<?php foreach ( $tests['results'] as $result ) : ?>
 						<tr>
 							<td style="width: 75%;" colspan="<?php echo $cols - 1; ?>">
-								<?php
+							<?php
+								$string = isset($result['label']) ? $result['label'] : '';
+								if (is_array($string) && isset( $string['value']) ){
+									$string = $string['value'];
+								} 
+								if ( ! is_string($string )){
+									$string = '';
+								}
 								echo wp_kses(
-									$result['label'],
+									$string,
 									array(
-										'code'   => array(),
-										'strong' => array(),
-										'em'     => array(),
+										'code'   => true,
+										'strong' => true,
+										'em'     => true,
 										'a'      => array( 'href' => true ),
 									)
 								);
-								?>
+							?>
 							</td>
 							<td>
 								<?php if ( $result['test'] ) : ?>
@@ -3330,17 +3357,24 @@ SQL
 								<?php foreach ( $tests['results'] as $result ) : ?>
 								<li>
 									<div style="width: 75%;" colspan="<?php echo $cols - 1; ?>">
-										<?php
+									<?php
+										$string = isset($result['label']) ? $result['label'] : '';
+										if (is_array($string) && isset( $string['value']) ){
+											$string = $string['value'];
+										} 
+										if ( ! is_string($string )){
+											$string = '';
+										}
 										echo wp_kses(
-											$result['label'],
+											$string,
 											array(
-												'code'   => array(),
-												'strong' => array(),
-												'em'     => array(),
+												'code'   => true,
+												'strong' => true,
+												'em'     => true,
 												'a'      => array( 'href' => true ),
 											)
 										);
-										?>
+									?>
 									</div>
 									<?php if ( $result['test'] ) : ?>
 										<div class="wf-result-success"><?php echo esc_html( $result['message'] ); ?></div>

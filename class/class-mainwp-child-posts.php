@@ -115,7 +115,7 @@ class MainWP_Child_Posts {
 	 * @uses MainWP_WordPress_SEO::instance()->parse_column_score_readability()
 	 * @uses \MainWP\Child\MainWP_Child_Posts::get_out_post()
 	 */
-	public function get_recent_posts_int( $status, $pCount, $type = 'post', &$allPosts, $extra = null ) {
+	public function get_recent_posts_int( $status, $pCount, $type, &$allPosts, $extra = null ) {
 
 		$args = array(
 			'post_status'      => $status,
@@ -215,10 +215,11 @@ class MainWP_Child_Posts {
 			$outPost['dts'] = strtotime( $post->post_date_gmt );
 		}
 
-		$usr               = get_user_by( 'id', $post->post_author );
-		$outPost['author'] = ! empty( $usr ) ? $usr->user_nicename : 'removed';
-		$categoryObjects   = get_the_category( $post->ID );
-		$categories        = '';
+		$usr                    = get_user_by( 'id', $post->post_author );
+		$outPost['author']      = ! empty( $usr ) ? $usr->user_nicename : 'removed';
+		$outPost['authorEmail'] = ! empty( $usr ) ? $usr->user_email : 'removed';
+		$categoryObjects        = get_the_category( $post->ID );
+		$categories             = '';
 		foreach ( $categoryObjects as $cat ) {
 			if ( '' !== $categories ) {
 				$categories .= ', ';
@@ -562,6 +563,8 @@ class MainWP_Child_Posts {
 				'post_excerpt'   => $post->post_excerpt,
 				'comment_status' => $post->comment_status,
 				'ping_status'    => $post->ping_status,
+				'post_type'      => $post->post_type,
+				'post_password'  => $post->post_password,
 			);
 
 			if ( null != $post_featured_image ) { // Featured image is set, retrieve URL.
@@ -613,6 +616,7 @@ class MainWP_Child_Posts {
 				'post_excerpt'   => $post->post_excerpt,
 				'comment_status' => $post->comment_status,
 				'ping_status'    => $post->ping_status,
+				'post_password'  => $post->post_password,
 			);
 
 			if ( null != $post_featured_image ) {
@@ -722,6 +726,12 @@ class MainWP_Child_Posts {
 			$this->create_post_plus( $new_post, $post_custom );
 		}
 
+		if ( isset( $post_custom['_mainwp_replace_advance_img'] ) && true == $post_custom['_mainwp_replace_advance_img'][0] ) {
+			$new_post['post_content'] = self::replace_advanced_image( $new_post['post_content'], $upload_dir );
+			$new_post['post_content'] = self::replace_advanced_image( $new_post['post_content'], $upload_dir, true ); // to fix images url with slashes.
+			unset( $post_custom['_mainwp_replace_advance_img'] );
+		}
+
 		// Save the post to the WP.
 		remove_filter( 'content_save_pre', 'wp_filter_post_kses' );  // to fix brake scripts or html.
 		$post_status             = $new_post['post_status']; // save post_status.
@@ -745,6 +755,7 @@ class MainWP_Child_Posts {
 		if ( empty( $new_post_id ) ) {
 			return array( 'error' => 'Empty post id' );
 		}
+
 		if ( ! $edit_post_id ) {
 			wp_update_post(
 				array(
@@ -753,7 +764,23 @@ class MainWP_Child_Posts {
 				)
 			);
 		}
+
+		if ( is_array( $post_custom ) && isset( $post_custom['_mainwp_edit_post_save_to_post_type'] ) ) {
+			$saved_post_type = $post_custom['_mainwp_edit_post_save_to_post_type'];
+			$saved_post_type = is_array( $saved_post_type ) ? current( $saved_post_type ) : $saved_post_type;
+			if ( ! empty( $saved_post_type ) ) {
+				wp_update_post(
+					array(
+						'ID'        => $new_post_id,
+						'post_type' => $saved_post_type,
+					)
+				);
+			}
+			unset( $post_custom['_mainwp_edit_post_save_to_post_type'] );
+		}
+
 		$this->update_post_data( $new_post_id, $post_custom, $post_category, $post_featured_image, $check_image_existed, $is_post_plus, $others );
+
 		// unlock if edit post.
 		if ( $edit_post_id ) {
 			update_post_meta( $edit_post_id, '_edit_lock', '' );
@@ -832,6 +859,7 @@ class MainWP_Child_Posts {
 	 * @param string $post_featured_image Post featured image.
 	 * @param bool   $check_image_existed TRUE|FALSE, Whether or not featured image already exists.
 	 * @param bool   $is_post_plus        TRUE|FALSE, Whether or not this came from MainWP Post Plus Extension.
+	 * @param array  $others        Others data.
 	 *
 	 * @uses \MainWP\Child\MainWP_Child_Posts::set_custom_post_fields()
 	 * @uses \MainWP\Child\MainWP_Child_Posts::update_seo_meta()
@@ -840,7 +868,7 @@ class MainWP_Child_Posts {
 	 * @uses \MainWP\Child\MainWP_Child_Posts::post_plus_update_author()
 	 * @uses \MainWP\Child\MainWP_Child_Posts::post_plus_update_categories()
 	 */
-	private function update_post_data( $new_post_id, $post_custom, $post_category, $post_featured_image, $check_image_existed, $is_post_plus ) {
+	private function update_post_data( $new_post_id, $post_custom, $post_category, $post_featured_image, $check_image_existed, $is_post_plus, $others ) {
 
 		$seo_ext_activated = false;
 		if ( class_exists( '\WPSEO_Meta' ) && class_exists( '\WPSEO_Admin' ) ) {
@@ -943,7 +971,7 @@ class MainWP_Child_Posts {
 				$hrefLink = $match[2];
 				$imgUrl   = $match[4];
 
-				if ( ! isset( $upload_dir['baseurl'] ) || ( 0 !== strripos( $imgUrl, $upload_dir['baseurl'] ) ) ) {
+				if ( ! isset( $upload_dir['baseurl'] ) || ( false === strripos( $imgUrl, $upload_dir['baseurl'] ) ) ) { // url of image is not in dashboard site.
 					continue;
 				}
 
@@ -970,6 +998,7 @@ class MainWP_Child_Posts {
 					}
 					$lnkToReplace = dirname( $imgUrl );
 					if ( 'http:' !== $lnkToReplace && 'https:' !== $lnkToReplace ) {
+						$new_post['post_content'] = str_replace( $imgUrl, $localUrl, $new_post['post_content'] ); // replace src image.
 						$new_post['post_content'] = str_replace( $lnkToReplace, $linkToReplaceWith, $new_post['post_content'] );
 					}
 				} catch ( \Exception $e ) {
@@ -977,6 +1006,81 @@ class MainWP_Child_Posts {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Method replace_advanced_image()
+	 *
+	 * Handle upload advanced image.
+	 *
+	 * @param array $content post content data.
+	 * @param array $upload_dir upload directory info.
+	 * @param bool  $withslashes to use preg pattern with slashes.
+	 *
+	 * @return mixed array of result.
+	 */
+	public static function replace_advanced_image( $content, $upload_dir, $withslashes = false ) {
+
+		if ( empty( $upload_dir ) || ! isset( $upload_dir['baseurl'] ) ) {
+			return $content;
+		}
+
+		$dashboard_url        = get_option( 'mainwp_child_server' );
+		$site_url_destination = get_site_url();
+
+		// to fix url with slashes.
+		if ( $withslashes ) {
+			$site_url_destination = str_replace( '/', '\/', $site_url_destination );
+			$dashboard_url        = str_replace( '/', '\/', $dashboard_url );
+		}
+
+		$foundMatches = preg_match_all( '#(' . preg_quote( $site_url_destination, null ) . ')[^\.]*(\.(png|gif|jpg|jpeg))#ix', $content, $matches, PREG_SET_ORDER );
+
+		if ( 0 < $foundMatches ) {
+
+			$matches_checked = array();
+			$check_double    = array();
+			foreach ( $matches as $match ) {
+				// to avoid double images.
+				if ( ! in_array( $match[0], $check_double ) ) {
+					$check_double[]    = $match[0];
+					$matches_checked[] = $match;
+				}
+			}
+			foreach ( $matches_checked as $match ) {
+
+				$imgUrl = $match[0];
+				if ( false === strripos( wp_unslash( $imgUrl ), $upload_dir['baseurl'] ) ) {
+					continue;
+				}
+
+				if ( preg_match( '/-\d{3}x\d{3}\.[a-zA-Z0-9]{3,4}$/', $imgUrl, $imgMatches ) ) {
+					$search         = $imgMatches[0];
+					$replace        = '.' . $match[3];
+					$originalImgUrl = str_replace( $search, $replace, $imgUrl );
+				} else {
+					$originalImgUrl = $imgUrl;
+				}
+
+				try {
+					$downloadfile      = MainWP_Utility::upload_image( wp_unslash( $originalImgUrl ), array(), true );
+					$localUrl          = $downloadfile['url'];
+					$linkToReplaceWith = dirname( $localUrl );
+					$lnkToReplace      = dirname( $imgUrl );
+					if ( 'http:' !== $lnkToReplace && 'https:' !== $lnkToReplace ) {
+						$content = str_replace( $imgUrl, $localUrl, $content ); // replace src image.
+						$content = str_replace( $lnkToReplace, $linkToReplaceWith, $content );
+					}
+				} catch ( \Exception $e ) {
+					// ok.
+				}
+			}
+			if ( false === strripos( $dashboard_url, $site_url_destination ) ) {
+				// replace other images src outside dashboard upload folder.
+				$content = str_replace( $dashboard_url, $site_url_destination, $content );
+			}
+		}
+		return $content;
 	}
 
 	/**
@@ -1211,6 +1315,17 @@ class MainWP_Child_Posts {
 			'_mainwp_edit_post_site_id',
 			'_mainwp_edit_post_id',
 			'_edit_post_status',
+			'_mainwp_edit_post_type',
+			'_mainwp_edit_post_status',
+			'_mainwp_edit_post_save_to_post_type',
+			'_mainwp_post_dripper_sites_number',
+			'_mainwp_post_dripper_time_number',
+			'_mainwp_post_dripper_select_time',
+			'_mainwp_post_dripper_use_post_dripper',
+			'mainwp_post_id',
+			'_mainwp_post_dripper_selected_drip_sites',
+			'_mainwp_post_dripper_total_drip_sites',
+			'_mainwp_replace_advance_img',
 		);
 
 		if ( is_array( $post_custom ) ) {
@@ -1224,10 +1339,20 @@ class MainWP_Child_Posts {
 						if ( ! $seo_ext_activated ) {
 							// if WordPress SEO plugin is not activated do not save yoast post meta.
 							if ( false === strpos( $meta_key, '_yoast_wpseo_' ) ) {
-								update_post_meta( $new_post_id, $meta_key, $meta_value );
+								if ( is_serialized( $meta_value ) ) {
+									$meta_value = unserialize( $meta_value ); // phpcs:ignore -- compatible.
+									update_post_meta( $new_post_id, $meta_key, $meta_value );
+								} else {
+									update_post_meta( $new_post_id, $meta_key, $meta_value );
+								}
 							}
 						} else {
-							update_post_meta( $new_post_id, $meta_key, $meta_value );
+							if ( is_serialized( $meta_value ) ) {
+								$meta_value = unserialize( $meta_value ); // phpcs:ignore -- compatible.
+								update_post_meta( $new_post_id, $meta_key, $meta_value );
+							} else {
+								update_post_meta( $new_post_id, $meta_key, $meta_value );
+							}
 						}
 					}
 				} elseif ( '_sticky' === $meta_key ) {

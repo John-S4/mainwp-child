@@ -33,7 +33,7 @@ class MainWP_Child {
 	 *
 	 * @var string MainWP Child plugin version.
 	 */
-	public static $version = '4.1.8';
+	public static $version = '4.2.3';
 
 	/**
 	 * Private variable containing the latest MainWP Child update version.
@@ -95,6 +95,7 @@ class MainWP_Child {
 		add_action( 'core_upgrade_preamble', array( MainWP_Child_Updates::get_instance(), 'detect_premium_themesplugins_updates' ) );
 
 		MainWP_Pages::get_instance()->init();
+		MainWP_Child_Cache_Purge::instance();
 
 		if ( is_admin() ) {
 			MainWP_Helper::update_option( 'mainwp_child_plugin_version', self::$version, 'yes' );
@@ -109,6 +110,9 @@ class MainWP_Child {
 		MainWP_Child_Themes_Check::instance();
 		MainWP_Utility::instance()->run_saved_snippets();
 
+		/**
+		 * Initiate Branding Options.
+		 */
 		if ( ! get_option( 'mainwp_child_pubkey' ) ) {
 			MainWP_Child_Branding::instance()->save_branding_options( 'branding_disconnected', 'yes' );
 		}
@@ -187,6 +191,9 @@ class MainWP_Child {
 				foreach ( (array) $alloptions_db as $o ) {
 					$alloptions[ $o->option_name ] = $o->option_value;
 					unset( $options[ array_search( $o->option_name, $options ) ] );
+				}
+				if ( ! is_array( $notoptions ) ) {
+					$notoptions = array();
 				}
 				foreach ( $options as $option ) {
 					$notoptions[ $option ] = true;
@@ -278,15 +285,7 @@ class MainWP_Child {
 
 		// Register does not require auth, so we register here.
 		if ( isset( $_POST['function'] ) && 'register' === $_POST['function'] ) {
-
-			/**
-			 * Checks whether cron is in progress.
-			 *
-			 * @const ( bool ) Default: true
-			 * @source https://code-reference.mainwp.com/classes/MainWP.Child.MainWP_Child.html
-			 */
-			define( 'DOING_CRON', true );
-
+			MainWP_Helper::maybe_set_doing_cron();
 			MainWP_Utility::fix_for_custom_themes();
 			MainWP_Connect::instance()->register_site(); // register the site and exit.
 		}

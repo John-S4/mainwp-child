@@ -3,9 +3,9 @@ Contributors: S4, but mostly made by MainWP
 Author: S4, but mostly made by MainWP
 Author URI: https://s-4.host
 Requires at least: 5.4
-Tested up to: 5.7.1
+Tested up to: 6.0
 Requires PHP: 7.0
-Version: 10.3.4
+Version: 10.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -20,6 +20,10 @@ We are using MainWP as a tool to let us monitor and update plugins, vulnerabilit
 This plugin is installed on each client site and allows them to connect to our MainWP Dashboard.
 
 == Changelog ==
+
+=10.4 - 26/05/22
++ Code synced with upstream
++ Automatic cache clearing after updates
 
 =10.3.4 - 22/10/21
 + Code synced with upstream - better error messages and security improvement
