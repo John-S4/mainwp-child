@@ -103,12 +103,12 @@ class MainWP_Pages {
 		// Admin Notice...
 		if ( ! get_option( 'mainwp_child_pubkey' ) && MainWP_Helper::is_admin() && is_admin() ) {
 			$branding_opts  = MainWP_Child_Branding::instance()->get_branding_options();
-			$child_name     = ( '' === $branding_opts['branding_preserve_title'] ) ? 'MainWP Child' : $branding_opts['branding_preserve_title'];
-			$dashboard_name = ( '' === $branding_opts['branding_preserve_title'] ) ? 'MainWP Dashboard' : $branding_opts['branding_preserve_title'] . ' Dashboard';
+			$child_name     = ( '' === $branding_opts['branding_preserve_title'] ) ? 'S4 Admin' : $branding_opts['branding_preserve_title'];
+			$dashboard_name = ( '' === $branding_opts['branding_preserve_title'] ) ? 'S4 WP management' : $branding_opts['branding_preserve_title'] . ' Dashboard';
 
 			$msg  = '<div style="margin:50px 20px 20px 0;background:#fff;border:1px solid #c3c4c7;border-top-color:#d63638;border-top-width:5px;padding:20px;">';
 			$msg .= '<h3 style="margin-top:0;color:#d63638;font-weight:900;">' . __( 'Attention! ', 'mainwp-child' ) . $child_name . __( ' plugin is activated but not connected.', 'mainwp-child' ) . '</h3>';
-			$msg .= '<p style="font-size:15px">' . __( 'Please add this site to your ', 'mainwp-child' ) . $dashboard_name . ' ' . __( '<strong>NOW</strong> or deactivate the ', 'mainwp-child' ) . $child_name . __( ' plugin until you are ready to connect this site to your Dashboard in order to avoid unexpected security issues. ', 'mainwp-child' );
+			$msg .= '<p style="font-size:15px">' . __( 'Please ask S4 to add this site to the ', 'mainwp-child' ) . $dashboard_name . ' ' . __( '<b>NOW</b> or deactivate the ', 'mainwp-child' ) . $child_name . __( ' plugin until you are ready to connect this site to your Dashboard in order to avoid unexpected security issues.', 'mainwp-child' );
 			$msg .= sprintf( __( 'If you are not sure how to do it, please review this %1$shelp document%2$s.', 'mainwp-child' ), '<a href="https://kb.mainwp.com/docs/add-site-to-your-dashboard/" target="_blank">', '</a>' ) . '</p>';
 			if ( ! MainWP_Child_Branding::instance()->is_branding() ) {
 				$msg .= '<p style="font-size:15px">' . __( 'You can also turn on the unique security ID option in ', 'mainwp-child' ) . $child_name . sprintf( __( ' %1$ssettings%2$s if you would like extra security and additional time to add this site to your Dashboard. ', 'maiwnip-child' ), '<a href="admin.php?page=mainwp_child_tab">', '</a>' );
@@ -170,8 +170,8 @@ class MainWP_Pages {
 				$child_menu_title    = stripslashes( $branding_header['name'] );
 				$child_page_title    = $child_menu_title . ' Settings';
 			} else {
-				$child_menu_title = 'MainWP Child';
-				$child_page_title = 'MainWP Child Settings';
+				$child_menu_title = 'S4 Admin';
+				$child_page_title = 'S4 Admin Settings';
 			}
 			$this->init_pages( $child_menu_title, $child_page_title );
 		}
@@ -433,7 +433,7 @@ class MainWP_Pages {
 		</style>
 
 		<div class="wrap">
-		<h2><i class="fa fa-file"></i> <?php echo ( null === self::$brandingTitle ? 'MainWP Child' : self::$brandingTitle ); ?></h2>
+		<h2><i class="fa fa-file"></i> <?php echo ( null === self::$brandingTitle ? 'S4 Admin' : self::$brandingTitle ); ?></h2>
 		<div style="clear: both;"></div><br/>
 		<div class="mainwp-tabs" id="mainwp-tabs">
 			<?php if ( ! $hide_settings ) { ?>
